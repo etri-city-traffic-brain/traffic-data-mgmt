@@ -1,0 +1,39 @@
+@charset "utf-8";
+
+.form-control, .btn{padding: 2px 3px 2px 3px; height: 26px;}
+.input-group-addon{padding: 2px 6px 2px 6px;}
+.form-group{padding: 2px 0 2px 0;}
+
+select{
+    background: #fff !important;
+    color: #4374D9;
+    border: 1px solid #4374D9;
+    border-radius: 3px;
+    text-shadow:0 1px 0 rgba(0,0,0,0.4);
+    /*-webkit-appearance: none;  화살표 없애기 for chrome*/
+    /*-moz-appearance: none;     화살표 없애기 for firefox*/
+    /*appearance: none;          화살표 없애기 공통*/
+    font-size: 14pt;
+    font-family: sans-serif;
+}
+
+select::-ms-expand {
+   /*display: none;             화살표 없애기 for IE10, 11*/
+}
+
+/* check, hover 스타일 설정 IE, Chrome */
+select option:checked, 
+select option:hover {    
+    background: #6799FF; 
+    color: #000000;
+}
+/* check, hover 스타일 설정 FireFox */
+ select option:checked,
+select option:hover { 
+    box-shadow: 0 0 10px 100px #6799FF inset;  
+    color: #000000;
+}
+
+div[role="date"], div[role="time"]{
+	width: 100px;
+}

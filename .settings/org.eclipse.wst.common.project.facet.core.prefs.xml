@@ -1,0 +1,7 @@
+<root>
+  <facet id="jpt.jaxb">
+    <node name="classgen">
+      <attribute name="package" value="net.solufine.rest.api.xml.xsd"/>
+    </node>
+  </facet>
+</root>

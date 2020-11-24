@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-config.dtd">
+
+<configuration>
+	<settings>
+		<!-- 
+		<setting name="logPrefix" value=" SQL : "/>
+		<setting name="logImpl" value="SLF4J"/>
+		 -->	
+		<setting name="cacheEnabled" value="true"/>
+        <setting name="lazyLoadingEnabled" value="false"/>
+        <setting name="multipleResultSetsEnabled" value="true"/>
+        <setting name="useColumnLabel" value="false"/>
+        <setting name="autoMappingBehavior" value="PARTIAL"/>
+        <setting name="autoMappingUnknownColumnBehavior" value="FAILING"/>
+        <setting name="defaultExecutorType" value="BATCH"/>
+        <setting name="defaultStatementTimeout" value="25000"/>
+        <setting name="jdbcTypeForNull" value="VARCHAR"/>
+        <!-- <setting name="callSettersOnNulls" value="true" /> -->
+	</settings>
+
+	<typeAliases>
+    	<typeAlias alias="hashMap" 				type="java.util.HashMap"/>
+    	<typeAlias alias="defaultVo" 			type="net.solufine.rest.api.service.DefaultVO"/>
+    	<typeAlias alias="node" 				type="net.solufine.rest.api.xml.Node"/>
+    	<typeAlias alias="edge" 				type="net.solufine.rest.api.xml.Edge"/>
+    	<typeAlias alias="con" 					type="net.solufine.rest.api.xml.Connection"/>
+    	<typeAlias alias="tl" 					type="net.solufine.rest.api.xml.TlLogic"/>    	
+    	<typeAlias alias="phase" 				type="net.solufine.rest.api.xml.Phase"/>
+    	<typeAlias alias="unexpected" 			type="net.solufine.rest.api.xml.Unexpected"/>
+    	<typeAlias alias="weather"				type="net.solufine.rest.api.xml.Weather"/>    	
+    	<typeAlias alias="file" 				type="net.solufine.rest.api.repository.FileVO"/>
+    	<typeAlias alias="request" 				type="net.solufine.rest.api.repository.RequestVO"/>
+    	<typeAlias alias="sigu" 				type="net.solufine.rest.api.repository.SiguVO"/>
+    	<typeAlias alias="dong" 				type="net.solufine.rest.api.repository.DongVO"/>    	
+    	<typeAlias alias="code" 				type="net.solufine.rest.api.repository.CodeVO"/>
+    	<typeAlias alias="signal" 				type="net.solufine.rest.api.xml.service.Signal"/>
+    	<typeAlias alias="signalTime"			type="net.solufine.rest.api.xml.service.SignalTime"/>
+    	<typeAlias alias="todPlan"				type="net.solufine.rest.api.xml.service.SignalTod"/>
+    	<typeAlias alias="signalScenario"		type="net.solufine.rest.api.xml.service.SignalScenario"/>
+    	<typeAlias alias="signalPhase"			type="net.solufine.rest.api.xml.service.SignalPhase"/>
+    	<typeAlias alias="specialDay"			type="net.solufine.rest.api.xml.service.SpecialDay"/> 
+    	<typeAlias alias="signalDetail"			type="net.solufine.rest.api.xml.service.SignalDetail"/>
+    	<typeAlias alias="route"				type="net.solufine.rest.api.xml.Route"/>
+    	<typeAlias alias="vehicle"				type="net.solufine.rest.api.xml.Vehicle"/>   	
+    	<typeAlias alias="vehicleRoute" 		type="net.solufine.rest.api.xml.service.VehicleRoute"/>
+    	<typeAlias alias="jsonSignal" 			type="net.solufine.rest.api.json.service.Signal"/>
+    	<typeAlias alias="jsonCon" 				type="net.solufine.rest.api.json.service.Connection"/>
+    	<typeAlias alias="jsonTrafficSignal"	type="net.solufine.rest.api.json.service.TrafficSignal"/>
+    	<typeAlias alias="jsonSignalTime"		type="net.solufine.rest.api.json.service.SignalPhaseDefault"/>
+    	<typeAlias alias="jsonSignalPhase"		type="net.solufine.rest.api.json.service.SignalPhase"/>
+    	<typeAlias alias="jsonSignalScenario"	type="net.solufine.rest.api.json.service.SignalScenario"/>
+    	
+    </typeAliases>
+    
+    <typeHandlers> 
+            <typeHandler javaType='net.solufine.rest.api.type.RequestType' handler='net.solufine.rest.api.type.RequestTypeHandler' /> 
+            <typeHandler javaType='net.solufine.rest.api.type.RouteType' handler='net.solufine.rest.api.type.RouteTypeHandler' />
+            <typeHandler javaType='net.solufine.rest.api.xml.type.NodeType' handler='net.solufine.rest.api.type.NodeTypeHandler' />
+            <typeHandler javaType='net.solufine.rest.api.xml.type.SpreadType' handler='net.solufine.rest.api.type.SpreadTypeHandler' />
+            <typeHandler javaType='net.solufine.rest.api.xml.type.TlLogicType' handler='net.solufine.rest.api.type.TlLogicTypeHandler' />
+            <typeHandler javaType='net.solufine.rest.api.xml.type.TrafficLightType' handler='net.solufine.rest.api.type.TrafficLightTypeHandler' />
+            
+    </typeHandlers>
+    
+</configuration>

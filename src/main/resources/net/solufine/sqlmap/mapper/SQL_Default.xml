@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="net.solufine.rest.api.mapper.DefaultMapper">
+	
+	<select id="selectSigu" parameterType="string" resultType="sigu">
+		SELECT SIGU_CD, SIDO_NM, SIGU_NM 
+  	   	  FROM SIGU
+  	   	 WHERE SIGU_CD  IN ('25010','25020','25030','25040','25050','29010')
+  	   	<if test="value != null and !value.equals('')">
+  	   	   AND SIGU_CD = '${value}'
+  	   	</if>
+  	   	ORDER BY SIGU_NM
+	</select>
+	
+	<select id="selectDong" parameterType="string" resultType="dong" >
+		SELECT SIGU_CD, DONG_CD, SIDO_NM, SIGU_NM, DONG_NM FROM DONG  
+		 WHERE SIGU_CD = '${value}'
+	  	 ORDER BY DONG_NM;
+	</select>
+	
+	<select id="selectCode" parameterType="string" resultType="code" >
+		SELECT CD_GROUP, CD_ID, CD_NM, REMARK
+		  FROM COM_CODE
+		 WHERE USE_YN = 1
+		   AND CD_GROUP = '${value}'
+		 ORDER BY CD_ID
+	</select>
+	
+	<update id="insertUploadHistory" parameterType="file" >
+		INSERT INTO UPLOAD_HIS (REG_DATE, XML_TYPE, FILE_NAME, FILE_SIZE )
+	         VALUES ( STR_TO_DATE('${reg_date}','%Y%m%d%H%i%s'), ${xml_type.value}, '${file_name}', ${file_size} )
+	</update>
+	
+	<update id="insertRequestHistory" parameterType="request" >
+		INSERT INTO REQUEST_HIS (ROW_NUM, REG_DATE, REQ_DATE, REQUESTTYPE, FROMTIME, TOTIME, REGION, SUBREGION, MINX, MINY, MAXX, MAXY, 
+								 PARTITION_CNT, PARTITIONNO, SIGNAL_YN, EVENT_YN, WEATHER_YN, ROUTE )
+	         VALUES ( GetRequestHisSeq(), NOW(), '${req_date}', '${requestType.value}', '${fromTime}', '${toTime}',
+	         		  '${region}', '${subregion}', ${minX}, ${minY}, ${maxX}, ${maxY},
+	         		  ${partition_cnt}, ${partitionNo}, ${signal_yn}, ${event_yn}, ${weather_yn}, ${route.value} )
+	</update>
+	
+	<select id="selecteRequstHistory" parameterType="request" resultType="request" >
+		SELECT R.ROW_NUM, R.REG_DATE, R.REQ_DATE, R.REQUESTTYPE, R.FROMTIME, R.TOTIME,
+			   R.REGION, R.SUBREGION, R.MINX, R.MINY, R.MAXX, R.MAXY, 
+			   R.PARTITION_CNT, R.PARTITIONNO, R.SIGNAL_YN, R.EVENT_YN, 
+			   R.WEATHER_YN, R.ROUTE, S.SIGU_NM, D.DONG_NM
+		  FROM REQUEST_HIS R LEFT JOIN SIGU S ON R.REGION = S.SIGU_CD
+							 LEFT JOIN DONG D ON R.REGION = D.SIGU_CD AND R.SUBREGION = D.DONG_CD
+		 ORDER BY R.REG_DATE DESC		 
+		 LIMIT ${pageLimit}, ${pageSize}	
+	</select>
+	
+	<select id="selecteRequstHistoryCount" resultType="int" > 
+		SELECT COUNT(REG_DATE) AS CNT
+		  FROM REQUEST_HIS
+	</select>
+	
+	<select id="selectePartitionCount" parameterType="string"  resultType="hashMap"> 
+		SELECT PARTITION_NO, COUNT(PARTITION_ID) AS PARTITION_CNT
+          FROM `PARTITION`
+         WHERE SIGU_CD = '${value}'
+           AND PARTITION_NO <![CDATA[ < ]]> 10
+         GROUP BY PARTITION_NO
+	</select>
+ 
+ 	<select id="selecteSignalVersion" resultType="string"> 
+		SELECT VERSION
+          FROM `SIGNAL`         
+         GROUP BY VERSION
+         ORDER BY VERSION 
+	</select>
+ 
+ 	<select id="selectPhase" resultType="phase"> 
+		SELECT SIGNAL_ID AS ID, `PHASE` AS SEQ, STATE
+		  FROM V_SIGNAL_SCENARIO
+		 GROUP BY SIGNAL_ID, `PHASE`, STATE
+		 ORDER BY SIGNAL_ID, `PHASE`  
+	</select>
+
+</mapper>
+
