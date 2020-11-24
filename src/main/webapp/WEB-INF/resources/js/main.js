@@ -500,33 +500,33 @@ function RequestSignalByRegion(){
 }
 
 
-function RequestSignalByRegion(){
-	if($('#SignalByRegion_form #fromDate').val() == ""){
+function RequestSignalByRegion2(){
+	if($('#SignalByRegion2_form #fromDate').val() == ""){
 		alert("시작날짜를 선택하십시오.");
 		return false;
 	}
 	
-	if($('#SignalByRegion_form #toDate').val() == ""){
+	if($('#SignalByRegion2_form #toDate').val() == ""){
 		alert("종료날짜를 선택하십시오.");
 		return false;
 	}
 		
-	if($('#SignalByRegion_form #fromTime').val() == ""){
+	if($('#SignalByRegion2_form #fromTime').val() == ""){
 		alert("시작시간을 선택하십시오.");
 		return false;
 	}
 	
-	if($('#SignalByRegion_form #toTime').val() == ""){
+	if($('#SignalByRegion2_form #toTime').val() == ""){
 		alert("종료시간을 선택하십시오.");
 		return false;
 	}
 	
-	$("#SignalByRegion_form #fromDate").val( $("#SignalByRegion_form #fromDate").val().replace(/-/g, '')  );
-	$("#SignalByRegion_form #toDate").val( $("#SignalByRegion_form #toDate").val().replace(/-/g, '')  );
-	$("#SignalByRegion_form #fromTime").val( $("#SignalByRegion_form #fromTime").val().replace(/:/g, '')  );
-	$("#SignalByRegion_form #toTime").val( $("#SignalByRegion_form #toTime").val().replace(/:/g, '')  );
+	$("#SignalByRegion2_form #fromDate").val( $("#SignalByRegion2_form #fromDate").val().replace(/-/g, '')  );
+	$("#SignalByRegion2_form #toDate").val( $("#SignalByRegion2_form #toDate").val().replace(/-/g, '')  );
+	$("#SignalByRegion2_form #fromTime").val( $("#SignalByRegion2_form #fromTime").val().replace(/:/g, '')  );
+	$("#SignalByRegion2_form #toTime").val( $("#SignalByRegion2_form #toTime").val().replace(/:/g, '')  );
 	
-	$('#SignalByRegion_form').submit();
+	$('#SignalByRegion2_form').submit();
 }
 
 

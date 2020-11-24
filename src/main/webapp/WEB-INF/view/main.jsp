@@ -442,7 +442,7 @@
 											</c:forEach>
 										</select>	
 								
-										<input class="btn input-sm btn-primary" type="button" value="요청" onclick="javascript:RequestMapByRegion();" >
+										<input class="btn input-sm btn-primary" type="button" value="요청" onclick="javascript:RequestMapByRegion2();" >
 									</div>
 						
 				                </div>
@@ -582,14 +582,23 @@
 					                
 									<div class="form-group">
 										<label for="region" class="control-label">구명</label>
-									<select id="region" name="region" role="region-select" class="form-control input-sm" style="width: 80px;" data-target="region">
-										<option value="250" selected="selected" data-tokens="대전광역시" >대전광역시</option> 
-										<c:forEach items="${sigu}" step="1" var="item" varStatus="status" >					
-											<c:if test="${item.sigu_cd == '25010' or item.sigu_cd == '25020' or item.sigu_cd == '25030' or item.sigu_cd == '25040' or item.sigu_cd == '25050'}">				
-											<option value="${item.sigu_cd}" data-tokens="${item.sigu_nm}" >${item.sigu_nm}</option>
-											</c:if> 
-										</c:forEach>						
-									</select> 
+										<select id="region" name="region" role="region-select" class="form-control input-sm" style="width: 80px;" data-target="region" 
+													data-sub="scenario-subregion-select" data-part="scenario-partitions">
+											<option value="250" selected="selected" data-tokens="대전광역시" >대전광역시</option> 
+											<c:forEach items="${sigu}" step="1" var="item" varStatus="status" >
+												<c:if test="${item.sigu_cd == '25010' or item.sigu_cd == '25020' or item.sigu_cd == '25030' or item.sigu_cd == '25040' or item.sigu_cd == '25050'}">									
+												<option value="${item.sigu_cd}" data-tokens="${item.sigu_nm}" >${item.sigu_nm}</option>
+												</c:if> 
+											</c:forEach>						
+										</select> 
+										
+										<label for="subregion" class="control-label">동명</label>
+										<select id="subregion" name="subregion" role="scenario-subregion-select"  class="form-control input-sm" style="width: 80px;" data-target="subregion">
+											<option value="0" selected="selected" data-tokens="전체" >전체</option> 
+											<c:forEach items="${dong}" step="1" var="item" varStatus="status" >	
+												<option value="${item.dong_cd}" data-tokens="${item.dong_nm}" >${item.dong_nm}</option>
+											</c:forEach>	
+										</select> 
 										
 										<input class="btn input-sm btn-primary" type="button" value="요청" onclick="javascript:RequestSignalByRegion();" >
 									</div>
@@ -640,14 +649,23 @@
 					                
 									<div class="form-group">
 										<label for="region" class="control-label">구명</label>
-									<select id="region" name="region" role="region-select" class="form-control input-sm" style="width: 80px;" data-target="region">
-										<option value="290" selected="selected" data-tokens="세종특별자치시" >세종특별자치시</option> 
-										<c:forEach items="${sigu}" step="1" var="item" varStatus="status" >	
-											<c:if test="${item.sigu_cd == '29010'}">								
-											<option value="${item.sigu_cd}" data-tokens="${item.sigu_nm}" >${item.sigu_nm}</option>
-											</c:if> 
-										</c:forEach>						
-									</select> 
+										<select id="region" name="region" role="region-select" class="form-control input-sm" style="width: 80px;" data-target="region" 
+													data-sub="scenario-subregion-select" data-part="scenario-partitions">
+											<option value="290" selected="selected" data-tokens="세종특별자치시" >세종특별자치시</option> 
+											<c:forEach items="${sigu}" step="1" var="item" varStatus="status" >
+												<c:if test="${item.sigu_cd == '29010'}">
+												<option value="${item.sigu_cd}" data-tokens="${item.sigu_nm}" >${item.sigu_nm}</option> 
+												</c:if>
+											</c:forEach>						
+										</select> 
+										
+										<label for="subregion" class="control-label">동명</label>
+										<select id="subregion" name="subregion" role="scenario-subregion-select"  class="form-control input-sm" style="width: 80px;" data-target="subregion">
+											<option value="0" selected="selected" data-tokens="전체" >전체</option> 
+											<c:forEach items="${dong}" step="1" var="item" varStatus="status" >	
+												<option value="${item.dong_cd}" data-tokens="${item.dong_nm}" >${item.dong_nm}</option>
+											</c:forEach>	
+										</select>
 										
 										<input class="btn input-sm btn-primary" type="button" value="요청" onclick="javascript:RequestSignalByRegion2();" >
 									</div>
