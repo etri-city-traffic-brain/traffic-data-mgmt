@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:vc="http://www.w3.org/2007/XMLSchema-versioning" elementFormDefault="qualified" attributeFormDefault="unqualified" vc:minVersion="1.1">
+	<xs:element name="edgeTrafficInfoList">
+		<xs:annotation>
+			<xs:documentation>Comment describing your root element</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="edgeTrafficinfo">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="trafficeInfoByDirection">
+								<xs:complexType>
+									<xs:attribute name="direction" type="directionType" use="required"/>
+									<xs:attribute name="bikeVol" type="xs:string" use="required"/>
+									<xs:attribute name="smallVol" type="xs:string" use="required"/>
+									<xs:attribute name="largeVol" type="xs:string" use="required"/>
+									<xs:attribute name="busVol" type="xs:string" use="required"/>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+						<xs:attribute name="nodeID" type="xs:string" use="required"/>
+						<xs:attribute name="nodeName" type="xs:string" use="required"/>
+						<xs:attribute name="camID" type="xs:string" use="required"/>
+						<xs:attribute name="date" type="xs:string" use="required"/>
+						<xs:attribute name="vol" type="xs:string" use="required"/>
+						<xs:attribute name="lane" type="xs:string" use="required"/>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:simpleType name="directionType" final="restriction">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="GO"/>
+			<xs:enumeration value="LEFT"/>
+			<xs:enumeration value="RIGHT"/>
+			<xs:enumeration value="UTURN"/>
+		</xs:restriction>
+	</xs:simpleType>
+</xs:schema>

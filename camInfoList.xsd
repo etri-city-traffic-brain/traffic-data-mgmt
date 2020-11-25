@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:vc="http://www.w3.org/2007/XMLSchema-versioning" elementFormDefault="qualified" attributeFormDefault="unqualified" vc:minVersion="1.1">
+	<xs:element name="camInfoList">
+		<xs:annotation>
+			<xs:documentation>Comment describing your root element</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="camInfo">
+					<xs:complexType>
+						<xs:attribute name="nodeID" type="xs:string" use="required"/>
+						<xs:attribute name="nodeName" type="xs:string" use="required"/>
+						<xs:attribute name="camID" type="xs:string" use="required"/>
+						<xs:attribute name="ip" type="xs:string" use="required"/>
+						<xs:attribute name="rtsp_usl" type="xs:string" use="required"/>
+						<xs:attribute name="rtsp_port" type="xs:string" use="required"/>
+						<xs:attribute name="http_port" type="xs:string" use="required"/>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

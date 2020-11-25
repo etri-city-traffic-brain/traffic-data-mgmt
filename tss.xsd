@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:vc="http://www.w3.org/2007/XMLSchema-versioning" elementFormDefault="qualified" attributeFormDefault="unqualified" vc:minVersion="1.1">
+	<xs:element name="trafficSignalSystem">
+		<xs:annotation>
+			<xs:documentation>Comment describing your root element</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="trafficSignal">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="schedule">
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="phase">
+											<xs:complexType>
+												<xs:attribute name="state" type="xs:string" use="required"/>
+												<xs:attribute name="duration" type="xs:string" use="required"/>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+									<xs:attribute name="offset" type="xs:string" use="required"/>
+									<xs:attribute name="id" type="xs:string" use="required"/>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="TODPlan">
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="plan">
+											<xs:complexType>
+												<xs:attribute name="offset" type="xs:string" use="required"/>
+												<xs:attribute name="schedule" type="xs:string" use="required"/>
+												<xs:attribute name="startTime" type="xs:string" use="required"/>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+									<xs:attribute name="offset" type="xs:string" use="required"/>
+									<xs:attribute name="defaultPlan" type="xs:string" use="required"/>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+						<xs:attribute name="nodeID" type="xs:string" use="required"/>
+						<xs:attribute name="version" type="xs:string" use="required"/>
+						<xs:attribute name="crossNo" type="xs:string" use="required"/>
+						<xs:attribute name="crossName" type="xs:string" use="required"/>
+						<xs:attribute name="date" type="xs:string" use="required"/>
+						<xs:attribute name="signalGroup" type="xs:string" use="required"/>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

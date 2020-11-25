@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:vc="http://www.w3.org/2007/XMLSchema-versioning" elementFormDefault="qualified" attributeFormDefault="unqualified" vc:minVersion="1.1">
+	<xs:element name="nodes">
+		<xs:annotation>
+			<xs:documentation>Comment describing your root element</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="node">
+					<xs:complexType>
+						<xs:attribute name="id" type="xs:string" use="required"/>
+						<xs:attribute name="x" type="xs:string" use="required"/>
+						<xs:attribute name="y" type="xs:string" use="required"/>
+						<xs:attribute name="z" type="xs:string" use="required"/>
+						<xs:attribute name="type" type="nodeType" use="required"/>
+						<xs:attribute name="tl" type="xs:string"/>
+						<xs:attribute name="radius" type="xs:string" use="required"/>
+						<xs:attribute name="keepClear" type="boolType" use="required"/>
+						<xs:attribute name="dong_cd" type="xs:string" use="required"/>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:simpleType name="nodeType" final="restriction">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="priority"/>
+			<xs:enumeration value="right_before_left"/>
+			<xs:enumeration value="traffic_light"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="boolType" final="restriction">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="true"/>
+			<xs:enumeration value="false"/>
+		</xs:restriction>
+	</xs:simpleType>
+</xs:schema>
