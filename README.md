@@ -10,10 +10,11 @@
 
 #### 2-1. 프로젝트 개발 환경
 
-    - 서버 OS : CentOS Linux release 7.9.2009 (Core)
-    - platform: spring boot 
-    - 언어: java8+
-    - IDE :Intellij
+   - 서버 OS : CentOS Linux release 7.9.2009 (Core)
+   - Platform : Spring Boot 
+   - Language : Java8+
+   - IDE : Intellij
+   
 	   
 #### 2-2. Database(Mysql5.7 이상) 설치
 
@@ -52,7 +53,9 @@
                    
    - 참고자료
    
-          https://cherrypick.co.kr/how-to-install-mysql5-7-in-centos7/
+        https://cherrypick.co.kr/how-to-install-mysql5-7-in-centos7/
+	
+	
           
             
 #### 2-3. Tomcat8.5 설치
@@ -84,7 +87,9 @@
             
    - 참고자료
    
-          https://www.infracody.com/2022/05/install-apache-tomcat-8-on-centos-7.html
+        https://www.infracody.com/2022/05/install-apache-tomcat-8-on-centos-7.html
+	
+	
 	  
           
 #### 2-4. API Application 등록 및 실행
@@ -94,13 +99,15 @@
           
    - war파일 업로드
    
-         $ /usr/local/lib/apache-tomcat-8.5.79/webapp/ 폴더에 restapi.war 파일 업로드
+        $ /usr/local/lib/apache-tomcat-8.5.79/webapp/ 폴더에 restapi.war 파일 업로드
           
    - tomcat 재실행
    
          $ cd /usr/local/lib/apache-tomcat-8.5.79/bin/
          $ ./shutdown.sh
          $ ./start.sh
+	 
+	 
 	 
 	 
 #### 2-5. 실행 확인
