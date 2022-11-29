@@ -9,12 +9,14 @@
 ## 2. 프로젝트 구성
 
 #### 2-1. 프로젝트 개발 환경
+
   - 서버 OS : CentOS Linux release 7.9.2009 (Core)
   - platform: spring boot 
   - 언어: java8+
   - IDE :Intellij
 	   
 #### 2-2. Database(Mysql5.7 이상) 설치
+
   - MySql다운로드
          $ wget https://dev.mysql.com/get/mysql57-community-release-el7-11.noarch.rpm
   - MySql 설치
@@ -37,6 +39,7 @@
           
             
 #### 2-3. Tomcat8.5 설치
+
   - OpenJDK 설치
          $ yum install -y java-1.8.0-openjdk-devel.x86_64
   - Apach Tomcat 다운로드
@@ -55,8 +58,10 @@
             
   - 참고자료
           https://www.infracody.com/2022/05/install-apache-tomcat-8-on-centos-7.html
+	  
           
 #### 2-4. API Application 등록 및 실행
+
   - war파일 생성
   - git에 업로드된 소스를 compile로 restapi.war 파일 생성
           
@@ -67,6 +72,7 @@
          $ cd /usr/local/lib/apache-tomcat-8.5.79/bin/
          $ ./shutdown.sh
          $ ./start.sh
+	 
     
 #### 2-5. 실행 확인
     - 웹 브라우저를 사용해서 http://서버IP/restapi/main 접속하여 UI를 확인한다.
