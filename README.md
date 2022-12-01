@@ -1,4 +1,4 @@
-
+#
 # ETRI Traffic data REST API
 본 프로젝트는 대전/세종 지역의 교통정보(edge, node, traffic, connection)를 REST API 기능을 통해 제공하고자 한다.
 
@@ -115,6 +115,9 @@
 
 
 
+
+
+#
 # 지자체 교통 데이터 구축 및 연계
 
 ## 1. 프로젝트 구성
