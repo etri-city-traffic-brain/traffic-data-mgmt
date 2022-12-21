@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-config.dtd">
+
+<configuration>
+	<settings>
+		<!-- 
+		<setting name="logPrefix" value=" SQL : "/>
+		<setting name="logImpl" value="SLF4J"/>
+		 -->	
+		<setting name="cacheEnabled" value="true"/>
+        <setting name="lazyLoadingEnabled" value="false"/>
+        <setting name="multipleResultSetsEnabled" value="true"/>
+        <setting name="useColumnLabel" value="false"/>
+        <setting name="autoMappingBehavior" value="PARTIAL"/>
+        <setting name="autoMappingUnknownColumnBehavior" value="FAILING"/>
+        <setting name="defaultExecutorType" value="BATCH"/>
+        <setting name="defaultStatementTimeout" value="25000"/>
+        <setting name="jdbcTypeForNull" value="VARCHAR"/>
+        <!-- <setting name="callSettersOnNulls" value="true" /> -->
+	</settings>
+
+	<typeAliases>
+    	<typeAlias alias="hashMap" 				type="java.util.HashMap"/>
+    	<typeAlias alias="defaultVo" 			type="net.etri.rest.api.service.DefaultVO"/>
+    	<typeAlias alias="node" 				type="net.etri.rest.api.xml.Node"/>
+    	<typeAlias alias="edge" 				type="net.etri.rest.api.xml.Edge"/>
+    	<typeAlias alias="con" 					type="net.etri.rest.api.xml.Connection"/>
+    	<typeAlias alias="tl" 					type="net.etri.rest.api.xml.TlLogic"/>
+    	<typeAlias alias="phase" 				type="net.etri.rest.api.xml.Phase"/>
+    	<typeAlias alias="unexpected" 			type="net.etri.rest.api.xml.Unexpected"/>
+    	<typeAlias alias="weather"				type="net.etri.rest.api.xml.Weather"/>
+    	<typeAlias alias="file" 				type="net.etri.rest.api.repository.FileVO"/>
+    	<typeAlias alias="request" 				type="net.etri.rest.api.repository.RequestVO"/>
+    	<typeAlias alias="sigu" 				type="net.etri.rest.api.repository.SiguVO"/>
+    	<typeAlias alias="dong" 				type="net.etri.rest.api.repository.DongVO"/>
+    	<typeAlias alias="code" 				type="net.etri.rest.api.repository.CodeVO"/>
+    	<typeAlias alias="signal" 				type="net.etri.rest.api.xml.service.Signal"/>
+    	<typeAlias alias="signalTime"			type="net.etri.rest.api.xml.service.SignalTime"/>
+    	<typeAlias alias="todPlan"				type="net.etri.rest.api.xml.service.SignalTod"/>
+    	<typeAlias alias="signalScenario"		type="net.etri.rest.api.xml.service.SignalScenario"/>
+    	<typeAlias alias="signalPhase"			type="net.etri.rest.api.xml.service.SignalPhase"/>
+    	<typeAlias alias="specialDay"			type="net.etri.rest.api.xml.service.SpecialDay"/>
+    	<typeAlias alias="signalDetail"			type="net.etri.rest.api.xml.service.SignalDetail"/>
+    	<typeAlias alias="route"				type="net.etri.rest.api.xml.Route"/>
+    	<typeAlias alias="vehicle"				type="net.etri.rest.api.xml.Vehicle"/>
+    	<typeAlias alias="vehicleRoute" 		type="net.etri.rest.api.xml.service.VehicleRoute"/>
+    	<typeAlias alias="jsonSignal" 			type="net.etri.rest.api.xml.service.json.service.Signal"/>
+    	<typeAlias alias="jsonCon" 				type="net.etri.rest.api.xml.service.json.service.Connection"/>
+    	<typeAlias alias="jsonTrafficSignal"	type="net.etri.rest.api.xml.service.json.service.TrafficSignal"/>
+    	<typeAlias alias="jsonSignalTime"		type="net.etri.rest.api.xml.service.json.service.SignalPhaseDefault"/>
+    	<typeAlias alias="jsonSignalPhase"		type="net.etri.rest.api.xml.service.json.service.SignalPhase"/>
+    	<typeAlias alias="jsonSignalScenario"	type="net.etri.rest.api.xml.service.json.service.SignalScenario"/>
+    	<typeAlias alias="busstop" 				type="net.etri.rest.api.xml.BusStop"/>
+    </typeAliases>
+    
+    <typeHandlers> 
+            <typeHandler javaType='net.etri.rest.api.type.RequestType' handler='net.etri.rest.api.type.RequestTypeHandler' />
+            <typeHandler javaType='net.etri.rest.api.type.RouteType' handler='net.etri.rest.api.type.RouteTypeHandler' />
+            <typeHandler javaType='net.etri.rest.api.xml.type.NodeType' handler='net.etri.rest.api.type.NodeTypeHandler' />
+            <typeHandler javaType='net.etri.rest.api.xml.type.SpreadType' handler='net.etri.rest.api.type.SpreadTypeHandler' />
+            <typeHandler javaType='net.etri.rest.api.xml.type.TlLogicType' handler='net.etri.rest.api.type.TlLogicTypeHandler' />
+            <typeHandler javaType='net.etri.rest.api.xml.type.TrafficLightType' handler='net.etri.rest.api.type.TrafficLightTypeHandler' />
+            
+    </typeHandlers>
+    
+</configuration>
