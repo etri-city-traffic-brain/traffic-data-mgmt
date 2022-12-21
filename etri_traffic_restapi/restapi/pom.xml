@@ -31,7 +31,7 @@
 		<!-- DBMS -->
 		<mybatis.version>3.4.6</mybatis.version>
 		<mybatis.spring.version>1.3.2</mybatis.spring.version>
-	    <mysql.version>8.0.12</mysql.version>
+	    <mysql.version>8.0.28</mysql.version>
 	    
 		<!-- AOP -->
 		<aspectjweaver.version>1.8.13</aspectjweaver.version>
