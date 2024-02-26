@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="net.etri.rest.api.mapper.JsonMapper">
+		
+	<select id="getSignalInfo" parameterType="String" resultType="jsonSignal">
+		<![CDATA[
+		SELECT SIGNAL_ID, VERSION, EFF_DATE, CROSS_NO, CROSS_NM, 
+			   SIGNAL_GROUP, POLICE_STATION, EDIT_DATE, DESCRIPTION
+		  FROM `SIGNAL`
+		
+		 WHERE SIGNAL_ID = ]]> '${value}'
+	</select>
+	
+	<select id="getSignal" parameterType="String" resultType="jsonTrafficSignal">
+		<![CDATA[
+		SELECT SIGNAL_ID, VERSION, EFF_DATE, CROSS_NO, CROSS_NM, 
+			   SIGNAL_GROUP, POLICE_STATION, EDIT_DATE, DESCRIPTION
+		  FROM `SIGNAL`
+		
+		 WHERE SIGNAL_ID = ]]> '${signal_id}'
+		   AND VERSION = '${version}' 
+	</select>
+	
+	<select id="getSignalTime" parameterType="String" resultType="jsonSignalTime">
+		<![CDATA[
+		SELECT SIGNAL_TYPE,
+		       CONCAT(IFNULL(LPAD(TM1, 2, '0'), ''), 
+					  IFNULL( CONCAT(':', LPAD(TM2, 2, '0')), ''), 
+		              IFNULL( CONCAT(':', LPAD(TM3, 2, '0')), ''), 
+					  IFNULL( CONCAT(':', LPAD(TM4, 2, '0')), ''), 
+		              IFNULL( CONCAT(':', LPAD(TM5, 2, '0')), ''), 
+		              IFNULL( CONCAT(':', LPAD(TM6, 2, '0')), '')) AS TM
+		  FROM PHASE_SIGNAL_TIME	
+		 WHERE SIGNAL_ID = ]]> '${signal_id}'
+		   AND VERSION = '${version}' 
+	</select>
+	
+	<select id="getSignalPhase" parameterType="String" resultType="jsonSignalPhase">
+		<![CDATA[
+		SELECT `PHASE`, STATE 
+		  FROM SIGNAL_PHASE
+		 WHERE SIGNAL_ID = ]]> '${signal_id}'
+		   AND VERSION = '${version}' 
+		 ORDER BY `PHASE`
+	</select>
+	
+	<select id="getSignalTodPlan" parameterType="String" resultType="todPlan">
+		<![CDATA[
+		SELECT PLAN_ID, SEQ, PATTERN_ID, FROM_TIME, TO_TIME 
+  		  FROM TOD_PLAN
+		 WHERE SIGNAL_ID = ]]> '${signal_id}'
+		   AND VERSION = '${version}' 
+		ORDER BY PLAN_ID, SEQ
+	</select>
+	
+	<select id="getSignalScenario" parameterType="String" resultType="jsonSignalScenario">
+		<![CDATA[
+		SELECT S.PATTERN_ID, S.SCENARIO_NO,  S.PERISTALSIS, S.CYCLE,
+			   GROUP_CONCAT(SP.DURATION SEPARATOR ':') AS `PHASE`
+		  FROM SIGNAL_SCENARIO S, SIGNAL_SCENARIO_PHASE SP
+		 WHERE S.SIGNAL_ID = SP.SIGNAL_ID
+		   AND S.VERSION = SP.VERSION
+   		   AND S.PATTERN_ID = SP.PATTERN_ID
+		   AND S.SIGNAL_ID = ]]> '${signal_id}'
+		   AND S.VERSION = '${version}'
+		<![CDATA[
+		 GROUP BY S.SIGNAL_ID, S.VERSION, S.PATTERN_ID, S.SCENARIO_NO, S.CYCLE, S.PERISTALSIS
+		 ORDER BY S.SIGNAL_ID, S.VERSION, S.SCENARIO_NO
+		]]> 
+	</select>
+	
+	<select id="getConnection" parameterType="String" resultType="jsonCon">
+		<![CDATA[
+		SELECT FROM_EDGE, FROMLANE, TO_EDGE, TOLANE, LINKINDEX
+		  FROM CON
+		  WHERE TL = '${value}'
+		ORDER BY LINKINDEX
+		]]> 
+	</select>
+	
+	<select id="getEditVersion" parameterType="String" resultType="int">
+		SELECT MAX(VERSION) + 1 AS NEW_VERSION
+  		  FROM `SIGNAL`
+  		 WHERE SIGNAL_ID =  '${value}';
+	</select>
+	
+<!--	
+	<update id="insertSignal" parameterType="jsonTrafficSignal" >
+		INSERT INTO `SIGNAL`(SIGNAL_ID, VERSION, TLLOGICTYPE, STD_ID, 
+			CROSS_NO, CROSS_NM, EFF_DATE, SIGNAL_GROUP, POLICE_STATION, 
+			EDIT_DATE, DESCRIPTION)
+	         VALUES
+	    		('${signal_id}', '${version}', 
+	    		  (
+	    		  	SELECT S.TLLOGICTYPE FROM `SIGNAL` S WHERE S.SIGNAL_ID = '${signal_id}' AND S.VERSION = ${version} - 1
+	    		  ),
+	    		  (
+	    		  	SELECT S2.STD_ID FROM `SIGNAL` S2 WHERE S2.SIGNAL_ID = '${signal_id}' AND S2.VERSION = ${version} - 1
+	    		  ), 
+	    		 '${cross_no}', '${cross_nm}', '${eff_date}', 
+	    		 '${signal_group}', '${police_station}', '${edit_date}', '${description}')
+	</update>
+-->	
+
+
+	<update id="insertSignalPhaseDefault" parameterType="list" >
+		INSERT INTO PHASE_SIGNAL_TIME(SIGNAL_ID, VERSION, SIGNAL_TYPE, TM1, TM2, TM3, TM4, TM5, TM6)
+			VALUES	
+		<foreach item="row" index="index" collection="list" separator=" , ">
+			('${row.signal_id}', '${row.version}', '${row.signal_type}', '${row.tm1}', '${row.tm2}', '${row.tm3}', '${row.tm4}', '${row.tm5}', '${row.tm6}')
+		</foreach>
+	</update>
+	
+	<update id="insertSignalPhase" parameterType="list" >
+		INSERT INTO SIGNAL_PHASE(SIGNAL_ID, VERSION, `PHASE`, STATE)
+			VALUES	
+		<foreach item="row" index="index" collection="list" separator=" , ">
+			('${row.signal_id}', '${row.version}', '${row.phase}', '${row.state}')
+		</foreach>
+	</update>
+
+<!-- 		 
+	<update id="insertSignalTodPlan" parameterType="list" >
+		INSERT INTO TOD_PLAN(SIGNAL_ID, VERSION, PLAN_ID, SEQ, PATTERN_ID, FROM_TIME, TO_TIME)
+			VALUES	
+		<foreach item="row" index="index" collection="list" separator=" , ">
+			('${row.signal_id}', '${row.version}', '${row.plan_id}', '${row.seq}', '${row.pattern_id}', '${row.from_time}', '${row.to_time}')
+		</foreach>
+	</update>
+-->				
+	<update id="insertSignalScenario" parameterType="list" >
+		INSERT INTO SIGNAL_SCENARIO(SIGNAL_ID, VERSION, PATTERN_ID, SCENARIO_NO, CYCLE, PERISTALSIS)
+			VALUES	
+		<foreach item="row" index="index" collection="list" separator=" , ">
+			('${row.signal_id}', '${row.version}', '${row.pattern_id}', '${row.scenario_no}', '${row.cycle}', '${row.peristalsis}')
+		</foreach>
+	</update>
+		
+			
+	<update id="insertSignalScenarioPhase" parameterType="list" >
+		INSERT INTO SIGNAL_SCENARIO_PHASE(SIGNAL_ID, VERSION, PATTERN_ID, `PHASE`, DURATION)
+			VALUES	
+		<foreach item="row" index="index" collection="list" separator=" , ">
+			('${row.signal_id}', '${row.version}', '${row.pattern_id}', '${row.phase}', '${row.duration}')
+		</foreach>
+	</update>
+
+	<delete id="deleteSpecialDay" parameterType="String">
+		DELETE FROM SPECIAL_DAY WHERE SIGNAL_ID = '${signal_id}' AND VERSION = '${version}'
+	</delete>	
+	
+	<delete id="deletePhaseSignalTime" parameterType="String">
+		DELETE FROM PHASE_SIGNAL_TIME WHERE SIGNAL_ID = '${signal_id}' AND VERSION = '${version}'
+	</delete>				
+			
+	<delete id="deleteTodPlan" parameterType="String">
+		DELETE FROM TOD_PLAN WHERE SIGNAL_ID = '${signal_id}' AND VERSION = '${version}'
+	</delete>	
+			
+	<delete id="deleteSignalScenarioPhase" parameterType="String">
+		DELETE FROM SIGNAL_SCENARIO_PHASE WHERE SIGNAL_ID = '${signal_id}' AND VERSION = '${version}'
+	</delete>			
+				
+	<delete id="deleteSignalScenario" parameterType="String">
+		DELETE FROM SIGNAL_SCENARIO WHERE SIGNAL_ID = '${signal_id}' AND VERSION = '${version}'
+	</delete>	
+	
+	<delete id="deleteSignalPhase" parameterType="String">
+		DELETE FROM SIGNAL_PHASE WHERE SIGNAL_ID = '${signal_id}' AND VERSION = '${version}'
+	</delete>				
+				
+	<delete id="deleteSignal" parameterType="String">
+		DELETE FROM `SIGNAL` WHERE SIGNAL_ID = '${signal_id}' AND VERSION = '${version}'
+	</delete>
+		
+		
+		
+		
+	<!--  //////////////////////////////////////////////////////////////////////////////////////////////////////////////   -->
+	
+	<update id="insertSignal" parameterType="jsonTrafficSignal">
+		INSERT INTO `SIGNAL`(SIGNAL_ID, VERSION, TLLOGICTYPE, STD_ID, 
+			CROSS_NO, CROSS_NM,
+			 <choose>
+			    <when test="eff_date == null">
+			    </when>
+			    <otherwise>
+					EFF_DATE,
+			    </otherwise>
+			</choose>
+			SIGNAL_GROUP, POLICE_STATION, 
+			EDIT_DATE, DESCRIPTION)
+	         VALUES
+	    		('${signal_id}', '${version}', 
+	    		  (
+	    		  	SELECT S.TLLOGICTYPE FROM `SIGNAL` S WHERE S.SIGNAL_ID = '${signal_id}' AND S.VERSION = ${version} - 1
+	    		  ),
+	    		  (
+	    		  	SELECT S2.STD_ID FROM `SIGNAL` S2 WHERE S2.SIGNAL_ID = '${signal_id}' AND S2.VERSION = ${version} - 1
+	    		  ), 
+	    		 '${cross_no}', '${cross_nm}',
+				 <choose>
+				    <when test="eff_date == null">
+				    </when>
+				    <otherwise>
+				 		'${eff_date}',
+				    </otherwise>
+				</choose>
+	    		 '${signal_group}', '${police_station}', '${edit_date}', '${description}')
+	</update>
+		
+	<update id="insertSignalTodPlan" parameterType="list" >
+		INSERT INTO TOD_PLAN(SIGNAL_ID, VERSION, PLAN_ID, SEQ, PATTERN_ID, FROM_TIME, TO_TIME)
+			VALUES	
+		<foreach item="row" index="index" collection="list" separator=" , ">
+			('${row.signal_id}', '${row.version}', '${row.plan_id}', '${row.seq}', '${row.pattern_id}', 
+			TIME('${row.from_time}'), 
+			TIME('${row.to_time}')
+			)
+		</foreach>
+	</update>
+		
+						
+</mapper>

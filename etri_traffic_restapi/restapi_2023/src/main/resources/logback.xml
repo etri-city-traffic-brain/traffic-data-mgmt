@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="30 seconds"
+	xmlns="http://ch.qos.logback/xml/ns/logback"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://ch.qos.logback/xml/ns/logback 
+    					https://raw.githubusercontent.com/enricopulatzo/logback-XSD/master/src/main/xsd/logback.xsd">
+    
+    <appender name="consoleAppender" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+			<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level %logger{36} - %msg%n
+			</pattern>
+		</encoder>
+		<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+			<level>TRACE</level>
+		</filter>
+	</appender>
+	
+	<appender name="dailyRollingFileAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+	<!-- <file>D:/workspace_java/ETRI/rest.api/log/rest.log</file> -->
+		<file>/var/lib/tomcat8/webapps/rest.api/log/rest.log</file>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+		    <!-- daily rollover -->
+			<!-- <fileNamePattern>D:/workspace_java/ETRI/rest.api/log/rest.%d{yyyy-MM-dd}.log</fileNamePattern> -->
+ 			<fileNamePattern>/var/lib/tomcat8/webapps/rest.api/log/rest.%d{yyyy-MM-dd}.log</fileNamePattern>
+ 			 			
+			<!-- keep 30 days' worth of history -->
+			<maxHistory>30</maxHistory>			
+		</rollingPolicy>
+ 
+		<encoder>
+			<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level %logger{36} - %msg %n</pattern>
+		</encoder> 	    
+  	</appender>
+  	
+<!--
+  	<logger name="org.codingpedia" additivity="false" level="DEBUG">
+		<appender-ref ref="dailyRollingFileAppender"/>
+		<appender-ref ref="consoleAppender" />
+	</logger>
+
+	<logger name="jdbc.connection" additivity="false" level ="WARN">
+		<appender-ref ref="consoleAppender"/> 
+	</logger>
+	
+	<logger name="jdbc.audit" additivity="false" level ="WARN"> 
+		<appender-ref ref="consoleAppender"/> 
+	</logger> 
+
+	<logger name="jdbc.resultset" additivity="false" level ="WARN">
+		<appender-ref ref="consoleAppender"/> 
+	</logger>
+	
+	<logger name="jdbc.sqlonly" additivity="false" level ="INFO"> 
+		<appender-ref ref="consoleAppender"/> 
+	</logger>	 	 
+	
+	<logger name="jdbc.resultsettable" additivity="false" level ="WARN"> 
+		<appender-ref ref="consoleAppender"/> 
+	</logger> 	
+-->
+	<root level="INFO"> 
+		<appender-ref ref="consoleAppender" />
+		<appender-ref ref="dailyRollingFileAppender"/>
+	</root>
+</configuration>
