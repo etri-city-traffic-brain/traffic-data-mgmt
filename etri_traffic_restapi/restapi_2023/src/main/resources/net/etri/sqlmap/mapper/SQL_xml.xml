@@ -1,0 +1,851 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="net.etri.rest.api.mapper.XmlMapper">
+
+    <update id="updateNode" parameterType="list">
+        INSERT INTO NODE (ID, X, Y, Z, SHAPE, NODETYPE, TLTYPE, TL, RADIUS, KEEPCLEAR )
+        VALUES
+        <foreach item="node" index="index" collection="list" separator=" , ">
+            ('${node.id}', ${node.x}, ${node.y}, ${node.z},
+            POINT(${node.x}, ${node.y}), '${node.type}',
+            '${node.tlType}', '${node.tl}', ${node.radius}, ${node.keepClear})
+        </foreach>
+        ON DUPLICATE KEY
+        UPDATE
+        X = Values(x),
+        Y = Values(y),
+        Z = Values(z),
+        SHAPE = POINT(Values(x), Values(y)),
+        NODETYPE = Values(nodetype),
+        TLTYPE = Values(tlType),
+        TL = Values(tl),
+        RADIUS = Values(radius),
+        KEEPCLEAR = Values(keepClear)
+    </update>
+
+    <select id="selectNode" parameterType="request" resultType="node">
+        SELECT N.ID, N.X, N.Y, N.Z, N.NODETYPE, N.TLTYPE, N.TL, N.RADIUS, N.KEEPCLEAR, N.DONG_CD
+        FROM NODE N
+        <choose>
+            <when test="req_div == 'COORDS'">
+                WHERE st_contains(GEOMFROMTEXT('POLYGON((${leftTop}, ${rightTop}, ${rightBottom}, ${leftBottom},
+                ${leftTop}))'), N.SHAPE)
+                AND N.DONG_CD IS NOT NULL
+            </when>
+            <when test="partition_cnt > 1">
+                WHERE st_contains(GEOMFROMTEXT((SELECT AsText(SHAPE)
+                FROM `PARTITION`
+                WHERE PARTITION_NO = '${partitionNo}'
+                AND PARTITION_ID = '${partition_id}'
+                )), N.SHAPE)
+                AND N.DONG_CD IS NOT NULL
+                <if test="10 > partitionNo">
+                    AND N.DONG_CD LIKE '${region}%'
+                </if>
+                GROUP BY N.ID, N.X, N.Y, N.Z, N.NODETYPE, N.TLTYPE, N.TL, N.RADIUS, N.KEEPCLEAR, N.DONG_CD
+            </when>
+            <otherwise>
+                <choose>
+                    <when test="subregion == null or subregion.equals('')">
+                        WHERE N.DONG_CD LIKE '${region}%'
+                    </when>
+                    <otherwise>
+                        WHERE N.DONG_CD = CONCAT('${region}', '${subregion}')
+                    </otherwise>
+                </choose>
+            </otherwise>
+        </choose>
+    </select>
+
+    <!--
+        <select id="selectNodeToEdge" parameterType="list" resultType="edge">
+            SELECT ID, FROM_NODE, TO_NODE, PRIORITY, NUMLANES, SPEED, SPREADTYPE,
+                   REPLACE(REPLACE(ST_AsText(SHAPE), 'LINESTRING(', ''), ')', '') AS SHAPETEXT, DONG_CD,
+                   EDGE_LEN, IFNULL(LEFT_POCKET, -1) AS LEFT_POCKET, IFNULL(RIGHT_POCKET, -1) AS RIGHT_POCKET
+              FROM EDGE
+             WHERE FROM_NODE IN (
+            <foreach item="node" index="index" collection="list" separator=" , ">
+              '${node.id}'
+             </foreach>
+              )
+        </select>
+    -->
+
+    <select id="selectNotInNode" parameterType="hashMap" resultType="node">
+        SELECT N.ID, N.X, N.Y, N.Z, N.NODETYPE, N.TLTYPE, N.TL, N.RADIUS, N.KEEPCLEAR, N.DONG_CD
+        FROM NODE N
+        WHERE N.ID IN (
+        <foreach item="id" index="index" collection="list" separator=" , ">
+            '${id}'
+        </foreach>
+        )
+        AND N.DONG_CD IS NOT NULL
+        <choose>
+            <when test="req_div == 'COORDS'">
+
+            </when>
+            <when test="partition_cnt > 1">
+                GROUP BY N.ID, N.X, N.Y, N.Z, N.NODETYPE, N.TLTYPE, N.TL, N.RADIUS, N.KEEPCLEAR, N.DONG_CD
+            </when>
+        </choose>
+    </select>
+
+    <select id="selectEdgeToNode" parameterType="hashMap" resultType="node">
+        <choose>
+            <when test="req_div == 'COORDS'">
+                SELECT N.ID, N.X, N.Y, N.Z, N.NODETYPE, N.TLTYPE, N.TL, N.RADIUS, N.KEEPCLEAR, N.DONG_CD
+                FROM NODE N
+            </when>
+            <when test="partition_cnt > 1">
+                SELECT N.ID, N.X, N.Y, N.Z, N.NODETYPE, N.TLTYPE, N.TL, N.RADIUS, N.KEEPCLEAR, N.DONG_CD
+                , CONCAT(B.FROM_PARTITION_ID) AS PARTITIONOWNER
+                FROM NODE N LEFT JOIN V_BORDER_INFO B ON B.TO_NODE = N.ID
+            </when>
+            <otherwise>
+                SELECT N.ID, N.X, N.Y, N.Z, N.NODETYPE, N.TLTYPE, N.TL, N.RADIUS, N.KEEPCLEAR, N.DONG_CD
+                FROM NODE N
+            </otherwise>
+        </choose>
+
+        <choose>
+            <when test="selectType == 2">
+                WHERE N.ID IN (
+                <foreach item="edge" index="index" collection="list" separator=" , ">
+                    '${edge.to_node}'
+                </foreach>
+                )
+            </when>
+            <otherwise>
+                WHERE N.ID IN (
+                <foreach item="edge" index="index" collection="list" separator=" , ">
+                    '${edge.from_node}', '${edge.to_node}'
+                </foreach>
+                )
+            </otherwise>
+        </choose>
+
+        <choose>
+            <when test="req_div == 'COORDS'">
+
+            </when>
+            <when test="partition_cnt > 1">
+                GROUP BY N.ID, N.X, N.Y, N.Z, N.NODETYPE, N.TLTYPE, N.TL, N.RADIUS, N.KEEPCLEAR, N.DONG_CD,
+                B.FROM_PARTITION_ID
+            </when>
+        </choose>
+    </select>
+
+    <update id="updateEdge" parameterType="list">
+        INSERT INTO EDGE (ID, FROM_NODE, TO_NODE, PRIORITY, NUMLANES, SPEED, SPREADTYPE, SHAPE )
+        VALUES
+        <foreach item="edge" index="index" collection="list" separator=" , ">
+            ( '${edge.id}', '${edge.from_node}', '${edge.to_node}', ${edge.priority}, ${edge.numLanes}, ${edge.speed},
+            '${edge.spreadType}',
+            <choose>
+                <when test="edge.shape == null or edge.shape.equals('')">
+                    GEOMFROMTEXT(CONCAT(CONCAT('LINESTRING(', GetPointsStr('${edge.from_node}',
+                    '${edge.to_node}')),')'))
+                </when>
+                <otherwise>
+                    GEOMFROMTEXT('LINESTRING(${edge.shape})')
+                </otherwise>
+            </choose>
+            )
+        </foreach>
+        ON DUPLICATE KEY
+        UPDATE FROM_NODE = Values(from_node),
+        TO_NODE = Values(to_node),
+        PRIORITY = Values(priority),
+        NUMLANES = Values(numLanes),
+        SPEED = Values(speed),
+        SPREADTYPE = Values(spreadType),
+        SHAPE = Values(shape)
+    </update>
+    <!--
+        <select id="selectEdge" parameterType="request" resultType="edge">
+            SELECT ID, FROM_NODE, TO_NODE, PRIORITY, NUMLANES, SPEED, SPREADTYPE,
+                   replace(replace(ST_AsText(SHAPE), 'LINESTRING(', ''), ')', '') AS SHAPETEXT, DONG_CD,
+                   EDGE_LEN, IFNULL(LEFT_POCKET, 0) AS LEFT_POCKET, IFNULL(RIGHT_POCKET, 0) AS RIGHT_POCKET ,
+                   BLANEST
+              FROM EDGE_BLANEST
+            <if test="minX > 0 and minY > 0 and maxX > 0 and maxY > 0">
+                WHERE st_contains(GEOMFROMTEXT('POLYGON((${leftTop}, ${rightTop}, ${rightBottom}, ${leftBottom}, ${leftTop}))'), SHAPE)
+            </if>
+        </select>
+    -->
+    <update id="updateConnection" parameterType="list">
+        INSERT INTO CON (FROM_EDGE, TO_EDGE, FROMLANE, TOLANE )
+        VALUES
+        <foreach item="con" index="index" collection="list" separator=" , ">
+            ( '${con.from_edge}', '${con.to_edge}', ${con.fromLane}, ${con.toLane} )
+        </foreach>
+    </update>
+
+    <update id="updateConnection2" parameterType="list">
+        INSERT INTO CON (FROM_EDGE, TO_EDGE, FROMLANE, TOLANE, TL, LINKINDEX )
+        VALUES
+        <foreach item="con" index="index" collection="list" separator=" , ">
+            ( '${con.from_edge}', '${con.to_edge}', ${con.fromLane}, ${con.toLane}, '${con.tl}', ${con.linkIndex} )
+        </foreach>
+        ON DUPLICATE KEY
+        UPDATE
+        TL = Values(tl),
+        LINKINDEX = Values(linkIndex)
+    </update>
+
+    <select id="selectConnection" parameterType="request" resultType="con">
+        SELECT FROM_EDGE, TO_EDGE, FROMLANE, TOLANE, TL, LINKINDEX
+        FROM CON
+        ORDER BY LINKINDEX
+    </select>
+
+    <select id="selectConnection2" parameterType="list" resultType="con">
+        SELECT FROM_EDGE, TO_EDGE, FROMLANE, TOLANE, TL, LINKINDEX
+        FROM CON
+        WHERE FROM_EDGE IN (
+        <foreach item="edge" index="index" collection="list" separator=" , ">
+            '${edge.id}'
+        </foreach>
+        )
+        AND TO_EDGE IN (
+        <foreach item="edge" index="index" collection="list" separator=" , ">
+            '${edge.id}'
+        </foreach>
+        )
+        ORDER BY TL, LINKINDEX
+    </select>
+
+    <select id="selectConnection3" parameterType="list" resultType="con">
+        SELECT FROM_EDGE, TO_EDGE, FROMLANE, TOLANE, TL, LINKINDEX
+        FROM CON
+        WHERE TL IN (
+        <foreach item="tl" index="index" collection="list" separator=" , ">
+            '${tl.id}'
+        </foreach>
+        )
+        ORDER BY LINKINDEX
+    </select>
+
+    <update id="updateTlLogic" parameterType="list">
+        INSERT INTO TLOGIC (ID, TLLOGICTYPE, PROGRAMID, OFFSET)
+        VALUES
+        <foreach item="tl" index="index" collection="list" separator=" , ">
+            ( '${tl.id}', '${tl.tlLogicType}', ${tl.programID}, ${tl.offset} )
+        </foreach>
+        ON DUPLICATE KEY
+        UPDATE
+        TLLOGICTYPE = Values(tllogictype),
+        PROGRAMID = Values(programID),
+        OFFSET = Values(offset)
+    </update>
+
+    <select id="selectTlLogic" parameterType="request" resultType="tl">
+        SELECT T.ID, T.TLLOGICTYPE, T.PROGRAMID, T.OFFSET,
+        S.STD_ID, S.CROSS_NO, S.CROSS_NM
+        FROM TLOGIC T, `SIGNAL` S, NODE N
+        WHERE T.ID = S.SIGNAL_ID
+        AND T.ID = N.TL
+        AND T.PROGRAMID = 0
+        <if test="requestType != null">
+            <choose>
+                <when test="requestType.value == 0 or requestType.value == 2 or requestType.value == 4">
+                    <choose>
+                        <when test="subregion == null or subregion.equals('')">
+                            AND N.DONG_CD LIKE '${region}%'
+                        </when>
+                        <otherwise>
+                            AND N.DONG_CD = CONCAT('${region}', '${subregion}')
+                        </otherwise>
+                    </choose>
+                </when>
+                <when test="requestType.value == 1 or requestType.value == 3 or requestType.value == 5">
+                    AND st_contains(GEOMFROMTEXT('POLYGON((${leftTop}, ${rightTop}, ${rightBottom}, ${leftBottom},
+                    ${leftTop}))'), N.SHAPE)
+                </when>
+                <otherwise>
+                    <if test="minX > 0 and minY > 0 and maxX > 0 and maxY > 0">
+                        AND st_contains(GEOMFROMTEXT('POLYGON((${leftTop}, ${rightTop}, ${rightBottom}, ${leftBottom},
+                        ${leftTop}))'), N.SHAPE)
+                    </if>
+                </otherwise>
+            </choose>
+        </if>
+        ORDER BY ID
+    </select>
+
+    <select id="selectEdgeToTlLogic" parameterType="list" resultType="tl">
+        SELECT T.ID, T.TLLOGICTYPE, T.PROGRAMID, T.OFFSET
+        FROM TLOGIC T,
+        (SELECT ID, TL
+        FROM NODE
+        WHERE ID IN (
+        <foreach item="edge" index="index" collection="list" separator=" , ">
+            '${edge.from_node}', '${edge.to_node}'
+        </foreach>
+        )) N
+        WHERE T.ID = N.TL
+        ORDER BY T.ID, T.PROGRAMID
+    </select>
+
+    <delete id="deletePhase" parameterType="list">
+        DELETE FROM PHASE WHERE ID IN (
+        <foreach item="phase" index="index" collection="list" separator=" , ">
+            '${phase.id}'
+        </foreach>
+        )
+    </delete>
+
+    <update id="updatePhase" parameterType="list">
+        INSERT INTO PHASE (ID, PROGRAMID, SEQ, DURATION, STATE )
+        VALUES
+        <foreach item="phase" index="index" collection="list" separator=" , ">
+            ( '${phase.id}', '${phase.programID}', ${phase.seq}, ${phase.duration}, '${phase.state}' )
+        </foreach>
+        ON DUPLICATE KEY
+        UPDATE
+        DURATION = Values(duration),
+        STATE = Values(state)
+    </update>
+
+    <select id="selectPhaseList" parameterType="list" resultType="phase">
+        SELECT ID, SEQ, DURATION, STATE
+        FROM PHASE
+        WHERE ID IN (
+        <foreach item="tl" index="index" collection="list" separator=" , ">
+            '${tl.id}'
+        </foreach>
+        )
+        ORDER BY ID, SEQ
+    </select>
+
+    <select id="selectWeather" parameterType="request" resultType="weather">
+        SELECT WEA_DATE, RAINFALL, RAINLY_STATUS, TEMPERATURE,
+        THUNDERSTORM, HUMIDITY, WIND_VELOCITY, WIND, SKY_STATUS
+        FROM WEATHER_EXT
+        WHERE WEA_DATE BETWEEN CONCAT('${req_date}', SUBSTR('${fromTime}', 1, 4)) AND CONCAT('${req_date}',
+        SUBSTR('${toTime}', 1, 4))
+        <choose>
+            <when test="requestType.value == 0">
+                AND DONG_CD = ${dong_cd}
+            </when>
+            <otherwise>
+                AND DONG_CD = ${dong_cd}
+            </otherwise>
+        </choose>
+
+    </select>
+
+    <select id="selectUnexpected" parameterType="request" resultType="unexpected">
+        SELECT SUDN_ST_ID,
+               SUDN_ST_LARGE_CD,
+               LANE_NO,
+               LONG_CD,
+               SUDN_ST_ST_SDTTM,
+               SUDN_ST_ED_SDTTM,
+               CONTROL_TIME,
+               OCCUR_LINK_ID,
+               SUDN_ST_CONT
+        FROM UNEXPECTED_STTN
+        WHERE SUDN_ST_ED_SDTTM <![CDATA[ > ]]> CONCAT('${req_date}', '${fromTime}')
+          AND SUDN_ST_ST_SDTTM <![CDATA[ < ]]> CONCAT('${req_date}', '${toTime}')
+    </select>
+
+    <update id="updateSignalOne" parameterType="signal">
+        INSERT INTO `SIGNAL`(SIGNAL_ID, VERSION, TLLOGICTYPE, STD_ID,
+                             CROSS_NO, CROSS_NM, EFF_DATE, SIGNAL_GROUP, POLICE_STATION)
+        VALUES ('${signal_id}', '${version}', '${tllogictype}', '${std_id}',
+                '${cross_no}', '${cross_nm}', '${eff_date}',
+                '${signal_group}', '${police_station}') ON DUPLICATE KEY
+        UPDATE
+            TLLOGICTYPE =
+        Values (tllogictype), STD_ID =
+        Values (std_id), CROSS_NO =
+        Values (cross_no), CROSS_NM =
+        Values (cross_nm), EFF_DATE =
+        Values (eff_date), SIGNAL_GROUP =
+        Values (signal_group), POLICE_STATION =
+        Values (police_station)
+    </update>
+
+    <update id="updateSignal" parameterType="list">
+        INSERT INTO `SIGNAL`(SIGNAL_ID, VERSION, TLLOGICTYPE, STD_ID,
+        CROSS_NO, CROSS_NM, EFF_DATE, SIGNAL_GROUP, POLICE_STATION)
+        VALUES
+        <foreach item="signal" index="index" collection="list" separator=" , ">
+            ('${signal.signal_id}', '${signal.version}', '${signal.tllogictype}', '${signal.std_id}',
+            '${signal.cross_no}', '${signal.cross_nm}', '${signal.eff_date}',
+            '${signal.signal_group}', '${signal.police_station}')
+        </foreach>
+        ON DUPLICATE KEY
+        UPDATE
+        TLLOGICTYPE = Values(tllogictype),
+        STD_ID = Values(std_id),
+        CROSS_NO = Values(cross_no),
+        CROSS_NM = Values(cross_nm),
+        EFF_DATE = Values(eff_date),
+        SIGNAL_GROUP = Values(signal_group),
+        POLICE_STATION = Values(police_station)
+    </update>
+
+    <update id="updateSignalTimeOne" parameterType="signalTime">
+        INSERT INTO PHASE_SIGNAL_TIME(SIGNAL_ID, VERSION, SIGNAL_TYPE, TM1, TM2, TM3, TM4, TM5, TM6)
+        VALUES ('${signal_id}', '${version}', '${signal_type}',
+                '${tm1}', '${tm2}', '${tm3}', '${tm4}', '${tm5}', '${tm6}') ON DUPLICATE KEY
+        UPDATE
+            TM1 =
+        Values (tm1), TM2 =
+        Values (tm2), TM3 =
+        Values (tm3), TM4 =
+        Values (tm4), TM5 =
+        Values (tm5), TM6 =
+        Values (tm6)
+    </update>
+
+    <update id="updateSignalTime" parameterType="list">
+        INSERT INTO PHASE_SIGNAL_TIME(SIGNAL_ID, VERSION, SIGNAL_TYPE, TM1, TM2, TM3, TM4)
+        VALUES
+        <foreach item="signalTime" index="index" collection="list" separator=" , ">
+            ('${signalTime.signal_id}', '${signalTime.version}', '${signalTime.signal_type}',
+            '${signalTime.tm1}', '${signalTime.tm2}', '${signalTime.tm3}', '${signalTime.tm4}')
+        </foreach>
+        ON DUPLICATE KEY
+        UPDATE
+        TM1 = Values(tm1),
+        TM2 = Values(tm2),
+        TM3 = Values(tm3),
+        TM4 = Values(tm4)
+    </update>
+
+    <update id="updateTodPlanOne" parameterType="todPlan">
+        INSERT INTO TOD_PLAN(SIGNAL_ID, VERSION, PLAN_ID, SEQ, FROM_TIME, TO_TIME, PATTERN_ID)
+        VALUES ('${signal_id}', '${version}', '${plan_id}',
+                '${seq}', '${from_time}', '${to_time}', '${pattern_id}') ON DUPLICATE KEY
+        UPDATE
+            SEQ =
+        Values (seq), FROM_TIME =
+        Values (from_time), TO_TIME =
+        Values (to_time), PATTERN_ID =
+        Values (pattern_id)
+    </update>
+
+
+    <update id="updateTodPlan" parameterType="list">
+        INSERT INTO TOD_PLAN(SIGNAL_ID, VERSION, PLAN_ID, SEQ, FROM_TIME, TO_TIME,PATTERN_ID)
+        VALUES
+        <foreach item="plan" index="index" collection="list" separator=" , ">
+            ('${plan.signal_id}', '${plan.version}', '${plan.plan_id}',
+            '${plan.seq}', '${plan.from_time}', '${plan.to_time}', '${plan.pattern_id}')
+        </foreach>
+        ON DUPLICATE KEY
+        UPDATE
+        SEQ = Values(seq),
+        FROM_TIME = Values(from_time),
+        TO_TIME = Values(to_time),
+        PATTERN_ID = Values(pattern_id)
+    </update>
+
+    <update id="updateSignalScenarioOne" parameterType="signalScenario">
+        INSERT INTO SIGNAL_SCENARIO(SIGNAL_ID, VERSION, PATTERN_ID, SCENARIO_NO, CYCLE, PERISTALSIS)
+        VALUES ('${signal_id}', '${version}', '${pattern_id}',
+                '${scenario_no}', '${cycle}', '${peristalsis}') ON DUPLICATE KEY
+        UPDATE
+            SCENARIO_NO =
+        Values (scenario_no), CYCLE =
+        Values (cycle), PERISTALSIS =
+        Values (peristalsis)
+    </update>
+
+    <update id="updateSignalScenario" parameterType="list">
+        INSERT INTO SIGNAL_SCENARIO(SIGNAL_ID, VERSION, PATTERN_ID, SCENARIO_NO, CYCLE, PERISTALSIS)
+        VALUES
+        <foreach item="signalScenario" index="index" collection="list" separator=" , ">
+            ('${signalScenario.signal_id}', '${signalScenario.version}', '${signalScenario.pattern_id}',
+            '${signalScenario.scenario_no}', '${signalScenario.cycle}', '${signalScenario.peristalsis}')
+        </foreach>
+        ON DUPLICATE KEY
+        UPDATE
+        SCENARIO_NO = Values(scenario_no),
+        CYCLE = Values(cycle),
+        PERISTALSIS = Values(peristalsis)
+    </update>
+
+    <delete id="deleteSignalScenario" parameterType="signalScenario">
+        DELETE
+        FROM SIGNAL_SCENARIO
+        WHERE SIGNAL_ID = '${signal_id}'
+          AND VERSION = '${version}'
+    </delete>
+
+    <update id="updateSignalPhaseOne" parameterType="signalPhase">
+        INSERT INTO SIGNAL_PHASE(SIGNAL_ID, VERSION, `PHASE`, STATE)
+        VALUES ('${signal_id}', '${version}', '${phase}', GetSignalState('${signal_id}', '${phase}')) ON DUPLICATE KEY
+        UPDATE
+            STATE = GetSignalState(Values (signal_id), Values (phase))
+    </update>
+
+
+    <update id="updateSignalPhase" parameterType="list">
+        INSERT INTO SIGNAL_PHASE(SIGNAL_ID, VERSION, `PHASE`, STATE)
+        VALUES
+        <foreach item="signalPhase" index="index" collection="list" separator=" , ">
+            ('${signalPhase.signal_id}', '${signalPhase.version}', '${signalPhase.phase}',
+            GetSignalState('${signalPhase.signal_id}','${signalPhase.phase}') )
+        </foreach>
+        ON DUPLICATE KEY
+        UPDATE
+        STATE = GetSignalState(Values(signal_id),Values(phase))
+    </update>
+
+    <delete id="deleteSignalPhase" parameterType="signalPhase">
+        DELETE
+        FROM SIGNAL_PHASE
+        WHERE SIGNAL_ID = '${signal_id}'
+          AND VERSION = '${version}'
+    </delete>
+
+    <update id="updateSignalScenarioPhaseOne" parameterType="signalPhase">
+        INSERT INTO SIGNAL_SCENARIO_PHASE(SIGNAL_ID, VERSION, PATTERN_ID, `PHASE`, DURATION)
+        VALUES ('${signal_id}', '${version}', '${pattern_id}',
+                '${phase}', '${duration}') ON DUPLICATE KEY
+        UPDATE
+            DURATION =
+        Values (duration)
+    </update>
+
+    <update id="updateSignalScenarioPhase" parameterType="list">
+        INSERT INTO SIGNAL_SCENARIO_PHASE(SIGNAL_ID, VERSION, PATTERN_ID, `PHASE`, DURATION)
+        VALUES
+        <foreach item="signalScenarioPhase" index="index" collection="list" separator=" , ">
+            ('${signalScenarioPhase.signal_id}', '${signalScenarioPhase.version}', '${signalScenarioPhase.pattern_id}',
+            '${signalScenarioPhase.phase}', '${signalScenarioPhase.duration}')
+        </foreach>
+        ON DUPLICATE KEY
+        UPDATE
+        DURATION = Values(duration)
+    </update>
+
+    <delete id="deleteSignalScenarioPhase" parameterType="signalPhase">
+        DELETE
+        FROM SIGNAL_SCENARIO_PHASE
+        WHERE SIGNAL_ID = '${signal_id}'
+          AND VERSION = '${version}'
+    </delete>
+
+    <update id="updateSpecialDayOne" parameterType="specialDay">
+        INSERT INTO SPECIAL_DAY(SIGNAL_ID, VERSION, SPECIAL_DATE, LUNAR_YN, SPECIAL_NM, PLAN_ID)
+        VALUES ('${signal_id}', '${version}', GatSpecialDay('${special_nm}'),
+                GetLunarYn('${special_nm}'), '${special_nm}', '${plan_id}') ON DUPLICATE KEY
+        UPDATE
+            SPECIAL_NM =
+        Values (special_nm), PLAN_ID =
+        Values (plan_id)
+    </update>
+
+    <update id="updateSpecialDay" parameterType="list">
+        INSERT INTO SPECIAL_DAY(SIGNAL_ID, VERSION, SPECIAL_DATE, LUNAR_YN, SPECIAL_NM, PLAN_ID)
+        VALUES
+        <foreach item="specialDay" index="index" collection="list" separator=" , ">
+            ('${specialDay.signal_id}', '${specialDay.version}', GatSpecialDay('${specialDay.special_nm}'),
+            GetLunarYn('${specialDay.special_nm}'), '${specialDay.special_nm}', '${specialDay.plan_id}')
+        </foreach>
+        ON DUPLICATE KEY
+        UPDATE
+        SPECIAL_NM = Values(special_nm),
+        PLAN_ID = Values(plan_id)
+    </update>
+
+    <select id="selectNodeToSignal" parameterType="hashMap" resultType="signal">
+        SELECT S.SIGNAL_ID, S.VERSION,
+        S.TLLOGICTYPE, S.STD_ID, S.CROSS_NO, S.CROSS_NM,
+        S.EFF_DATE, S.SIGNAL_GROUP, S.POLICE_STATION
+        FROM `SIGNAL` S,
+        (SELECT ID, TL
+        FROM NODE
+        WHERE ID IN (
+        <foreach item="node" index="index" collection="list" separator=" , ">
+            '${node.id}'
+        </foreach>
+        )) N
+        WHERE S.SIGNAL_ID = N.TL
+        AND S.VERSION = GetSignalVersion(S.SIGNAL_ID, '${req_date}');
+    </select>
+
+    <select id="selectSignal" parameterType="hashMap" resultType="signal">
+        SELECT S.SIGNAL_ID, S.VERSION,
+        S.TLLOGICTYPE, S.STD_ID, S.CROSS_NO, S.CROSS_NM,
+        S.EFF_DATE, S.SIGNAL_GROUP, S.POLICE_STATION
+        FROM `SIGNAL` S
+        WHERE S.SIGNAL_ID IN (
+        <foreach item="id" index="index" collection="list" separator=" , ">
+            '${id}'
+        </foreach>
+        )
+        AND S.VERSION = GetSignalVersion(S.SIGNAL_ID, '${req_date}');
+    </select>
+
+    <select id="selectVerSignal" parameterType="String" resultType="signal">
+        SELECT S.SIGNAL_ID,
+               S.VERSION,
+               S.TLLOGICTYPE,
+               S.STD_ID,
+               S.CROSS_NO,
+               S.CROSS_NM,
+               S.EFF_DATE,
+               S.SIGNAL_GROUP,
+               S.POLICE_STATION
+        FROM `SIGNAL` S
+        WHERE S.VERSION = '${value}'
+    </select>
+
+    <select id="selectTrafficSignalDetail" parameterType="request" resultType="signalDetail">
+        SELECT '${req_date}' AS REQ_DATE,
+               A.SIGNAL_ID,
+               A.VERSION,
+               A.PLAN_ID,
+               A.SEQ,
+               A.FROM_TIME,
+               A.TO_TIME,
+               A.SCENARIO_NO,
+               A.PATTERN_ID,
+               A.START_TIME,
+               A.CYCLE,
+               A.PERISTALSIS,
+               A.PHASE,
+               A.STATE,
+               A.DURATION,
+               A.YELLOW_DURATION,
+               A.RED_DURATION
+        FROM (SELECT T.SIGNAL_ID,
+                     T.VERSION,
+                     T.PLAN_ID,
+                     T.SEQ,
+                     T.FROM_TIME,
+                     T.TO_TIME,
+                     S.SCENARIO_NO,
+                     S.PATTERN_ID,
+                     CASE WHEN TIME('${fromTime}') > T.FROM_TIME THEN 0 ELSE TIMESTAMPDIFF(SECOND, TIME ('${fromTime}'), T.FROM_TIME )
+                  END START_TIME, S.CYCLE, S.PERISTALSIS, S.PHASE, S.STATE, S.DURATION, GetYellowDuration(T.SIGNAL_ID, T.VERSION, S.PHASE) AS YELLOW_DURATION, GetRedDuration(T.SIGNAL_ID, T.VERSION, S.PHASE) AS RED_DURATION
+              FROM TOD_PLAN T, V_SIGNAL_SCENARIO S
+              WHERE T.SIGNAL_ID = S.SIGNAL_ID
+                AND T.VERSION = S.VERSION
+                AND T.PATTERN_ID = S.PATTERN_ID
+                AND T.SIGNAL_ID = '${signal_id}'
+                AND T.VERSION = '${version}'
+                AND T.PLAN_ID = GetPlanId('${signal_id}'
+                  , '${version}'
+                  , '${req_date}')
+		<![CDATA[  AND (T.FROM_TIME >= TIME (]]>'${fromTime}'<![CDATA[)
+                AND T.FROM_TIME
+                  < TIME (]]>'${toTime}')
+                 OR TIME ('${fromTime}'<![CDATA[) >= T.FROM_TIME
+                AND TIME (]]> '${fromTime}'<![CDATA[)
+                  < T.TO_TIME )) A
+        WHERE A.STATE IS NOT NULL
+        ORDER BY A.SIGNAL_ID, A.PLAN_ID, A.SEQ, A.PHASE
+        ]]>
+    </select>
+
+    <select id="selectTrafficSignalPeriodDetail" parameterType="request" resultType="signalDetail">
+        SELECT T.REQ_DATE, T.SIGNAL_ID, T.VERSION, T.PLAN_ID, T.SEQ,
+        T.FROM_TIME, T.TO_TIME, T.SCENARIO_NO, T.PATTERN_ID,
+        T.START_TIME, T.CYCLE, T.PERISTALSIS,
+        T.PHASE, STATE, T.DURATION, T.YELLOW_DURATION, T.RED_DURATION
+        FROM(
+        <foreach item="date" index="index" collection="periodDate" separator=" UNION ALL ">
+            SELECT '${date.periodDate}' AS REQ_DATE, A.SIGNAL_ID, A.VERSION, A.PLAN_ID, A.SEQ,
+            A.FROM_TIME, A.TO_TIME, A.SCENARIO_NO, A.PATTERN_ID,
+            A.START_TIME, A.CYCLE, A.PERISTALSIS,
+            A.PHASE, A.STATE, A.DURATION, A.YELLOW_DURATION, A.RED_DURATION
+            FROM (
+            SELECT T.SIGNAL_ID, T.VERSION, T.PLAN_ID, T.SEQ,
+            T.FROM_TIME, T.TO_TIME, S.SCENARIO_NO, S.PATTERN_ID,
+            CASE WHEN TIME('${date.fromTime}') > T.FROM_TIME THEN 0
+            ELSE TIMESTAMPDIFF(SECOND, TIME('${date.fromTime}'), T.FROM_TIME )
+            END START_TIME,
+            S.CYCLE, S.PERISTALSIS,
+            S.PHASE, S.STATE, S.DURATION,
+            GetYellowDuration(T.SIGNAL_ID, T.VERSION, S.PHASE) AS YELLOW_DURATION,
+            GetRedDuration(T.SIGNAL_ID, T.VERSION, S.PHASE) AS RED_DURATION
+            FROM TOD_PLAN T, V_SIGNAL_SCENARIO S
+            WHERE T.SIGNAL_ID = S.SIGNAL_ID
+            AND T.VERSION = S.VERSION
+            AND T.PATTERN_ID = S.PATTERN_ID
+            AND T.SIGNAL_ID = '${signal_id}'
+            AND T.VERSION = '${version}'
+            AND T.PLAN_ID = GetPlanId('${signal_id}', '${version}', '${date.periodDate}')
+            <![CDATA[  AND (T.FROM_TIME >= TIME(]]>'${date.fromTime}'<![CDATA[) AND T.FROM_TIME < TIME(]]>
+            '${date.toTime}')
+            OR TIME('${date.fromTime}'<![CDATA[) >= T.FROM_TIME AND TIME(]]> '${date.fromTime}'<![CDATA[) <  T.TO_TIME )
+			  ) A
+			  WHERE A.STATE IS NOT NULL  ]]>
+        </foreach>
+        ) T
+        ORDER BY T.REQ_DATE, T.SIGNAL_ID, T.PLAN_ID, T.SEQ, T.PHASE
+
+    </select>
+
+    <select id="selectSignalTodPlan" parameterType="request" resultType="todPlan">
+        SELECT T.SIGNAL_ID, T.VERSION, T.PLAN_ID, T.SEQ, T.FROM_TIME, T.TO_TIME
+        FROM TOD_PLAN T
+        WHERE T.SIGNAL_ID = '${signal_id}'
+          AND T.VERSION = '${version}'
+          AND T.PLAN_ID = GetPlanId('${signal_id}', '${version}', '${req_date}')
+    </select>
+
+    <select id="selectNoTimeTrafficSignalDetail" parameterType="request" resultType="signalDetail">
+        SELECT T.SIGNAL_ID,
+               T.VERSION,
+               T.PLAN_ID,
+               T.SEQ,
+               T.FROM_TIME,
+               T.TO_TIME,
+               S.SCENARIO_NO,
+               S.PATTERN_ID,
+               CASE WHEN TIME('${fromTime}') > T.FROM_TIME THEN 0 ELSE TIMESTAMPDIFF(SECOND, TIME ('${fromTime}'), T.FROM_TIME )
+        END START_TIME
+        ,
+			   S.CYCLE, S.PERISTALSIS,
+			   S.PHASE, S.STATE, S.DURATION, 
+			   GetYellowDuration(T.SIGNAL_ID, T.VERSION, S.PHASE) AS YELLOW_DURATION,
+			   GetRedDuration(T.SIGNAL_ID, T.VERSION, S.PHASE) AS RED_DURATION
+		  FROM TOD_PLAN T, V_SIGNAL_SCENARIO S
+		 WHERE T.SIGNAL_ID = S.SIGNAL_ID
+		   AND T.VERSION = S.VERSION
+		   AND T.PATTERN_ID = S.PATTERN_ID   
+		   AND T.SIGNAL_ID = '${signal_id}'
+		   AND T.VERSION = '${version}'
+		   AND T.PLAN_ID = GetPlanId('${signal_id}', '${version}', '${req_date}')
+		 ORDER BY T.SIGNAL_ID, T.PLAN_ID, T.SEQ
+    </select>
+
+    <select id="GetPartitionNo" parameterType="request" resultType="string">
+        SELECT GETPARTITIONNO('${region}', ${partition_cnt})
+        FROM DUAL
+    </select>
+
+    <select id="selectRoute" parameterType="request" resultType="vehicleRoute">
+        SELECT T.SIGNAL_ID, T.VERSION, T.PLAN_ID, T.SEQ, T.FROM_TIME, T.TO_TIME
+        FROM TOD_PLAN T
+        WHERE T.SIGNAL_ID = '${signal_id}'
+          AND T.VERSION = '${version}'
+          AND T.PLAN_ID = GetPlanId('${signal_id}', '${version}', '${req_date}')
+    </select>
+
+    <select id="RegionNode" parameterType="request" resultType="node">
+        SELECT N.ID, N.X, N.Y, N.Z, N.NODETYPE, N.TLTYPE, N.TL, N.RADIUS, N.KEEPCLEAR, N.DONG_CD
+        FROM NODE N
+        <choose>
+            <when test="subregion == null or subregion.equals('') or subregion == '0' or subregion.equals('0')">
+                WHERE N.DONG_CD LIKE '${region}%'
+            </when>
+
+            <otherwise>
+                WHERE N.DONG_CD = CONCAT('${region}', '${subregion}')
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="CoordinateNode" parameterType="request" resultType="node">
+        SELECT N.ID,
+               N.X,
+               N.Y,
+               N.Z,
+               N.NODETYPE,
+               N.TLTYPE,
+               N.TL,
+               N.RADIUS,
+               N.KEEPCLEAR,
+               N.DONG_CD
+        FROM NODE N
+        WHERE st_contains(GEOMFROMTEXT('POLYGON((${leftTop}, ${rightTop}, ${rightBottom}, ${leftBottom}, ${leftTop}))'),
+                          N.SHAPE)
+    </select>
+
+
+    <!--  ///////////////  2차 추가 작업 ///////////////////////  -->
+
+    <select id="selectSignalTime" parameterType="hashMap" resultType="signalTime">
+        SELECT PST.SIGNAL_ID,
+               PST.VERSION,
+               PST.SIGNAL_TYPE,
+               PST.TM1,
+               PST.TM2,
+               PST.TM3,
+               PST.TM4,
+               PST.TM5,
+               PST.TM6
+        FROM PHASE_SIGNAL_TIME AS PST
+        WHERE PST.SIGNAL_ID = '${signal_id}'
+          AND PST.VERSION = '${version}'
+          AND PST.TIME_PLAN = '${time_plan}'
+    </select>
+
+
+    <select id="selectNodeToEdge" parameterType="list" resultType="edge">
+        SELECT ID, FROM_NODE, TO_NODE, PRIORITY, NUMLANES, SPEED, SPREADTYPE,
+        REPLACE(REPLACE(ST_AsText(SHAPE), 'LINESTRING(', ''), ')', '') AS SHAPETEXT, DONG_CD,
+        EDGE_LEN, IFNULL(LEFT_POCKET, -1) AS LEFT_POCKET, IFNULL(RIGHT_POCKET, -1) AS RIGHT_POCKET,
+        BLANEST
+        FROM EDGE_BLANEST
+        WHERE FROM_NODE IN (
+        <foreach item="node" index="index" collection="list" separator=" , ">
+            '${node.id}'
+        </foreach>
+        )
+    </select>
+
+    <select id="selectEdge" parameterType="request" resultType="edge">
+        SELECT ID, FROM_NODE, TO_NODE, PRIORITY, NUMLANES, SPEED, SPREADTYPE,
+        replace(replace(ST_AsText(SHAPE), 'LINESTRING(', ''), ')', '') AS SHAPETEXT, DONG_CD,
+        EDGE_LEN, IFNULL(LEFT_POCKET, 0) AS LEFT_POCKET, IFNULL(RIGHT_POCKET, 0) AS RIGHT_POCKET ,
+        BLANEST
+        FROM EDGE_BLANEST
+        <if test="minX > 0 and minY > 0 and maxX > 0 and maxY > 0">
+            WHERE st_contains(GEOMFROMTEXT('POLYGON((${leftTop}, ${rightTop}, ${rightBottom}, ${leftBottom},
+            ${leftTop}))'), SHAPE)
+        </if>
+    </select>
+
+    <!-- 20211118 장길수 추가 : 버스 정류소 정보 조회 -->
+    <!-- 20221020 장길수 수정 : 버스 정류소 정차 버스 ID 추가 -->
+    <!-- 컬럼과 XML 속성이 달라 추가 -->
+    <resultMap type="busstop" id="resultBusStopList">
+        <id column="ID" property="id"/>
+        <result column="EDGE_ID" property="edge"/>
+        <result column="POSITION" property="position"/>
+        <result column="BUSES" property="buses"/>
+    </resultMap>
+
+    <select id="selectBusStopList" parameterType="list" resultMap="resultBusStopList">
+        SELECT ID, EDGE_ID, CONCAT(x, ', ', y) AS POSITION, BUSES
+        FROM BUS_STOP
+        WHERE EDGE_ID IN (
+        <foreach item="edge" index="index" collection="list" separator=", ">
+            '${edge.id}'
+        </foreach>
+        )
+        ORDER BY EDGE_ID, ID
+    </select>
+
+
+    <select id="CoordinateNodeByDong" parameterType="request" resultType="node">
+        SELECT N.ID,
+               N.X,
+               N.Y,
+               N.Z,
+               N.NODETYPE,
+               N.TLTYPE,
+               N.TL,
+               N.RADIUS,
+               N.KEEPCLEAR,
+               N.DONG_CD
+        FROM NODE N
+        WHERE N.DONG_CD in
+              (SELECT distinct(DONG_CD)
+               FROM NODE N
+               where st_contains(
+                             GEOMFROMTEXT('POLYGON((${leftTop}, ${rightTop}, ${rightBottom}, ${leftBottom}, ${leftTop}))'),
+                             N.SHAPE))
+    </select>
+
+</mapper>
